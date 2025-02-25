@@ -1,3 +1,12 @@
+export interface Habit {
+  id: string;
+  name: string;
+  logs: { [key: string]: boolean };
+  category?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Category {
   value: string;
   label: string;
