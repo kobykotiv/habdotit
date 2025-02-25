@@ -1,3 +1,28 @@
+export interface Category {
+  value: string;
+  label: string;
+  emoji: string;
+  color: string;
+}
+
+export interface Achievement {
+  id: string;
+  icon: string;
+  title: string;
+  description: string;
+}
+
+export interface ShareModalStats {
+  totalCompletions: number;
+  totalHabits: number;
+  longestStreak: number;
+}
+
+export interface ShareModalProps {
+  stats: ShareModalStats;
+  achievements: Achievement[];
+}
+
 export interface Task {
   id: string;
   title: string;

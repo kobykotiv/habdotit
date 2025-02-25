@@ -5,9 +5,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button"
 import { Share2, Twitter, Facebook, Link } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
-import html2canvas from "html2canvas"
 
-export function ShareModal({ stats, achievements }) {
+import { ShareModalProps } from "@/lib/types"
+
+export function ShareModal({ stats, achievements }: ShareModalProps) {
   const { toast } = useToast()
   const [sharing, setSharing] = useState(false)
 
@@ -34,12 +35,17 @@ export function ShareModal({ stats, achievements }) {
     setSharing(true)
     try {
       const element = document.getElementById('stats-card')
+      if (!element) return
+
+      const html2canvas = (await import('html2canvas')).default
       const canvas = await html2canvas(element)
       const dataUrl = canvas.toDataURL()
       
       if (navigator.share) {
+        const blob = await (await fetch(dataUrl)).blob()
+        const file = new File([blob], 'stats.png', { type: 'image/png' })
         await navigator.share({
-          files: [await (await fetch(dataUrl)).blob()],
+          files: [file],
           title: 'My Habit Progress',
           text: shareText
         })
