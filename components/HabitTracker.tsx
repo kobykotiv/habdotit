@@ -22,6 +22,14 @@ import StreakWidget from "@/components/StreakWidget"
 import Tutorial from "@/components/Tutorial"
 import { HABIT_CATEGORIES, FREQUENCY_OPTIONS } from "../lib/constants"
 import Cookies from "js-cookie"
+import { useTheme } from "next-themes"
+import { ThemeToggle } from "@/components/ThemeToggle"
+import { scheduleHabitReminder } from "@/lib/pushNotifications"
+import { checkAchievements, calculateLevel } from "@/lib/achievements"
+import { Analytics } from "@/components/Analytics"
+import { ShareModal } from "@/components/ShareModal"
+import { AccessibilityMenu } from "@/components/AccessibilityMenu"
+import { requestHealthKitPermissions, syncHealthData } from "@/lib/healthKit"
 
 const HabitTracker = () => {
   const [habits, setHabits] = useState([])
@@ -36,6 +44,9 @@ const HabitTracker = () => {
   const [showTutorial, setShowTutorial] = useState(false)
   const { toast } = useToast()
   const [profile, setProfile] = useState({})
+  const { theme } = useTheme()
+  const [achievements, setAchievements] = useState([])
+  const [healthSync, setHealthSync] = useState(false)
 
   useEffect(() => {
     const loadHabits = () => {
@@ -63,7 +74,26 @@ const HabitTracker = () => {
     Cookies.set("habits", JSON.stringify(habits), { expires: 365 })
   }, [habits])
 
-  const addHabit = () => {
+  useEffect(() => {
+    const stats = {
+      totalHabits: habits.length,
+      longestStreak: Math.max(...habits.map(h => h.longestStreak)),
+      activeHabits: habits.filter(h => h.currentStreak > 0).length
+    }
+    
+    const earned = checkAchievements(stats)
+    setAchievements(earned)
+  }, [habits])
+
+  useEffect(() => {
+    const initHealthKit = async () => {
+      const hasPermission = await requestHealthKitPermissions()
+      setHealthSync(hasPermission)
+    }
+    initHealthKit()
+  }, [])
+
+  const addHabit = async () => {
     if (newHabit.name.trim()) {
       const habit = {
         id: Date.now().toString(),
@@ -71,8 +101,16 @@ const HabitTracker = () => {
         logs: {},
         currentStreak: 0,
         longestStreak: 0,
+        level: 1,
+        points: 0,
       }
       setHabits([...habits, habit])
+      
+      // Schedule reminder if time is set
+      if (newHabit.reminderTime) {
+        await scheduleHabitReminder(habit)
+      }
+      
       setNewHabit({
         name: "",
         category: "health-positive",
@@ -90,48 +128,90 @@ const HabitTracker = () => {
 
   const toggleHabit = (habitId) => {
     const today = new Date().toISOString().split("T")[0]
+    interface Habit {
+      id: string
+      name: string
+      category: string
+      frequency: string
+      reminderTime: string
+      notes: string
+      logs: { [key: string]: boolean }
+      currentStreak: number
+      longestStreak: number
+    }
+
+    const setHabits = (update: React.SetStateAction<Habit[]>) => {
+      setHabits(update)
+    }
+
     setHabits(
       habits.map((habit) => {
-        if (habit.id === habitId) {
-          const newLogs = { ...habit.logs }
-          if (newLogs[today]) {
-            delete newLogs[today]
-          } else {
-            newLogs[today] = true
-          }
-
-          let currentStreak = 0
-          let longestStreak = habit.longestStreak
-          const checkDate = new Date()
-
-          while (true) {
-            const dateStr = checkDate.toISOString().split("T")[0]
-            if (newLogs[dateStr]) {
-              currentStreak++
-              checkDate.setDate(checkDate.getDate() - 1)
-            } else {
-              break
-            }
-          }
-
-          if (currentStreak > longestStreak) {
-            longestStreak = currentStreak
-          }
-
-          return {
-            ...habit,
-            logs: newLogs,
-            currentStreak,
-            longestStreak,
-          }
+      if (habit.id === habitId) {
+        const newLogs = { ...habit.logs }
+        if (newLogs[today]) {
+        delete newLogs[today]
+        } else {
+        newLogs[today] = true
         }
-        return habit
+
+        let currentStreak = 0
+        let longestStreak = habit.longestStreak
+        const checkDate = new Date()
+
+        while (true) {
+        const dateStr = checkDate.toISOString().split("T")[0]
+        if (newLogs[dateStr]) {
+          currentStreak++
+          checkDate.setDate(checkDate.getDate() - 1)
+        } else {
+          break
+        }
+        }
+
+        if (currentStreak > longestStreak) {
+        longestStreak = currentStreak
+        }
+
+        return {
+        ...habit,
+        logs: newLogs,
+        currentStreak,
+        longestStreak,
+        }
+      }
+      return habit
       }),
     )
     toast({
       title: "Habit updated! 💪",
       description: "Great job staying consistent!",
     })
+    checkNewAchievements()
+  }
+
+  const checkNewAchievements = () => {
+    const stats = {
+      totalHabits: habits.length,
+      longestStreak: Math.max(...habits.map(h => h.longestStreak)),
+      activeHabits: habits.filter(h => h.currentStreak > 0).length
+    }
+    
+    const earned = checkAchievements(stats)
+    const newAchievements = earned.filter(
+      a => !achievements.find(existing => existing.id === a.id)
+    )
+    
+    if (newAchievements.length > 0) {
+      newAchievements.forEach(achievement => {
+        toast({
+          title: `🎉 Achievement Unlocked!`,
+          description: `${achievement.icon} ${achievement.title}: ${achievement.description}`,
+          duration: 5000
+        })
+      })
+    }
+    
+    setAchievements(earned)
   }
 
   const deleteHabit = (habitId) => {
@@ -172,11 +252,27 @@ const HabitTracker = () => {
     return () => clearInterval(backupInterval)
   }, [remindBackup])
 
+  const calculateStats = (habit) => {
+    const totalDays = Object.keys(habit.logs).length
+    const completionRate = totalDays / getDaysSinceCreation(habit) * 100
+    return {
+      completionRate: Math.round(completionRate),
+      totalDays,
+      points: totalDays * 10 + habit.currentStreak * 20,
+    }
+  }
+
   return (
     <div className="max-w-2xl mx-auto p-4">
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="text-3xl font-bold text-primary">🌟 Habit Tracker</CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-3xl font-bold text-primary">🌟 Habit Tracker</CardTitle>
+            <div className="flex gap-2">
+              <AccessibilityMenu />
+              <ThemeToggle />
+            </div>
+          </div>
           <CardDescription className="text-lg">Track your daily habits and build streaks</CardDescription>
         </CardHeader>
         <CardContent>
@@ -319,10 +415,33 @@ const HabitTracker = () => {
       })}
 
       <div className="space-y-4 mt-6">
+        <ShareModal stats={calculateStats()} achievements={achievements} />
         <Button onClick={exportToJson} className="w-full">
           <Save className="w-4 h-4 mr-2" />
           Backup Habits Data
         </Button>
+      </div>
+
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Achievements ({achievements.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {achievements.map(achievement => (
+              <div key={achievement.id} className="text-center p-4 border rounded">
+                <span className="text-4xl">{achievement.icon}</span>
+                <h3 className="font-bold mt-2">{achievement.title}</h3>
+                <p className="text-sm text-muted-foreground">{achievement.description}</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="mt-6">
+        <h2 className="text-2xl font-bold mb-4">Analytics</h2>
+        <Analytics habits={habits} />
       </div>
 
       <Tutorial isOpen={showTutorial} onClose={() => setShowTutorial(false)} />

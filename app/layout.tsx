@@ -3,6 +3,8 @@ import "@/styles/globals.css"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { Toaster } from "@/components/ui/toaster"
+import { ThemeProvider } from "@/components/ThemeProvider"
+import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -21,15 +23,20 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head />
       <body className={`${inter.className} bg-background text-foreground`}>
-        {children}
-        <Toaster />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ServiceWorkerRegistration />
+          {children}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   )
 }
-
-
-
-import './globals.css'
