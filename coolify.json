@@ -1,0 +1,7 @@
+{
+  "version": "1.0",
+  "build": {
+    "command": "npm run build",
+    "output": "out"
+  }
+}

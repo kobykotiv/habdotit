@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "next.config.mjs",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/"
+    }
+  ],
+  "framework": "nextjs",
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_VAPID_PUBLIC_KEY": "@next_public_vapid_public_key",
+      "VAPID_PRIVATE_KEY": "@vapid_private_key",
+      "VAPID_SUBJECT": "@vapid_subject"
+    }
+  },
+  "output": {
+    "directory": "out"
+  }
+}
