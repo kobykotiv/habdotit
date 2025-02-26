@@ -3,9 +3,8 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   images: {
-    domains: ['cdn.carbonads.com'],
+    domains: ['cdn.carbonads.com', 'example.com', 'anotherdomain.com'],
   },
 }
 
 export default nextConfig
-
