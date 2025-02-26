@@ -4,9 +4,22 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts'
 
-export function Analytics({ habits }) {
+interface Habit {
+  id: string;
+  name: string;
+  logs: { [key: string]: boolean };
+  currentStreak: number;
+  longestStreak: number;
+  category: string;
+}
+
+interface AnalyticsProps {
+  habits: Habit[];
+}
+
+export function Analytics({ habits }: AnalyticsProps) {
   const [stats, setStats] = useState({
-    weeklyCompletion: [],
+    weeklyCompletion: [] as { week: string; completions: number }[],
     bestDay: '',
     totalCompletions: 0,
     averageStreak: 0
@@ -24,7 +37,7 @@ export function Analytics({ habits }) {
         acc[week] = (acc[week] || 0) + 1
       })
       return acc
-    }, {})
+    }, {} as { [key: string]: number })
 
     // Find best performing day
     const dayStats = habits.reduce((acc, habit) => {
@@ -33,7 +46,7 @@ export function Analytics({ habits }) {
         acc[day] = (acc[day] || 0) + 1
       })
       return acc
-    }, {})
+    }, {} as { [key: number]: number })
 
     const bestDay = Object.entries(dayStats).sort((a, b) => b[1] - a[1])[0]?.[0]
 
@@ -42,9 +55,9 @@ export function Analytics({ habits }) {
         week,
         completions: count
       })),
-      bestDay: getDayName(parseInt(bestDay)),
+      bestDay: getDayName(parseInt(bestDay || '0')),
       totalCompletions: Object.values(dayStats).reduce((a, b) => a + b, 0),
-      averageStreak: habits.reduce((acc, habit) => acc + habit.currentStreak, 0) / habits.length
+      averageStreak: habits.length > 0 ? habits.reduce((acc, habit) => acc + habit.currentStreak, 0) / habits.length : 0
     })
   }
 
@@ -87,7 +100,13 @@ export function Analytics({ habits }) {
   )
 }
 
-function StatCard({ title, value, icon }) {
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  icon: string;
+}
+
+function StatCard({ title, value, icon }: StatCardProps) {
   return (
     <Card>
       <CardContent className="pt-4">
