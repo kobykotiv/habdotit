@@ -23,5 +23,12 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
+  "vercel": {
+    "build": {
+      "env": {
+        "NEXT_PUBLIC_VERCEL_ENV": "production"
+      }
+    }
+  }
 }
