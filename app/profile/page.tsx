@@ -1,10 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, ChangeEvent } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import type { ChangeEvent } from "react"
 import { Label } from "@/components/ui/label"
 import { Save } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"

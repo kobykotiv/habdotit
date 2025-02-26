@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts'
 import type { Habit } from '@/lib/types'
 
-export function Analytics({ habits }: { habits: Habit[] }) {
+export function Analytics({ habits }: { habits: any[] }) {
   const [stats, setStats] = useState({
     weeklyCompletion: [],
     bestDay: '',
