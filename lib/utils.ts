@@ -5,6 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// Function to calculate the number of days since the habit was created
 export const getDaysSinceCreation = (habit: { createdAt?: string }) => {
   if (!habit.createdAt) return 1;
   const creationDate = new Date(habit.createdAt);
