@@ -1,14 +1,10 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts'
 
-interface AnalyticsProps {
-  habits: any[];
-}
-
-export function Analytics({ habits }: AnalyticsProps) {
+export function Analytics({ habits }) {
   const [stats, setStats] = useState({
     weeklyCompletion: [],
     bestDay: '',
@@ -31,7 +27,7 @@ export function Analytics({ habits }: AnalyticsProps) {
     }, {})
 
     // Find best performing day
-    const dayStats: Record<string, number> = habits.reduce((acc, habit) => {
+    const dayStats = habits.reduce((acc, habit) => {
       Object.keys(habit.logs).forEach(date => {
         const day = new Date(date).getDay()
         acc[day] = (acc[day] || 0) + 1
@@ -39,7 +35,7 @@ export function Analytics({ habits }: AnalyticsProps) {
       return acc
     }, {})
 
-    const bestDay = Object.entries(dayStats).sort((a, b) => b[1] - a[1])[0]?.[0] as string
+    const bestDay = Object.entries(dayStats).sort((a, b) => b[1] - a[1])[0]?.[0]
 
     setStats({
       weeklyCompletion: Object.entries(weeklyData).map(([week, count]) => ({
@@ -52,6 +48,8 @@ export function Analytics({ habits }: AnalyticsProps) {
     })
   }
 
+  const memoizedStats = useMemo(() => stats, [stats]);
+
   return (
     <div className="space-y-4">
       <Card>
@@ -60,7 +58,7 @@ export function Analytics({ habits }: AnalyticsProps) {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={stats.weeklyCompletion}>
+            <LineChart data={memoizedStats.weeklyCompletion}>
               <XAxis dataKey="week" />
               <YAxis />
               <Tooltip />
@@ -73,17 +71,17 @@ export function Analytics({ habits }: AnalyticsProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
           title="Best Day"
-          value={stats.bestDay}
+          value={memoizedStats.bestDay}
           icon="📅"
         />
         <StatCard
           title="Total Completions"
-          value={stats.totalCompletions}
+          value={memoizedStats.totalCompletions}
           icon="✅"
         />
         <StatCard
           title="Average Streak"
-          value={Math.round(stats.averageStreak)}
+          value={Math.round(memoizedStats.averageStreak)}
           icon="🔥"
         />
       </div>
