@@ -26,7 +26,7 @@ const Profile = () => {
     }
   }, [])
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setProfile({ ...profile, [e.target.name]: e.target.value })
   }
 
@@ -101,4 +101,3 @@ const Profile = () => {
 }
 
 export default Profile
-
