@@ -27,7 +27,7 @@ export function Analytics({ habits }: { habits: any[] }) {
     }, {})
 
     // Find best performing day
-    const dayStats = habits.reduce((acc, habit) => {
+    const dayStats: Record<string, number> = habits.reduce((acc, habit) => {
       Object.keys(habit.logs).forEach(date => {
         const day = new Date(date).getDay()
         acc[day] = (acc[day] || 0) + 1
