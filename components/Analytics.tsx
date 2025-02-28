@@ -35,7 +35,7 @@ export function Analytics({ habits }: { habits: any[] }) {
       return acc
     }, {})
 
-    const bestDay = Object.entries(dayStats).sort((a, b) => b[1] - a[1])[0]?.[0]
+    const bestDay = Object.entries(dayStats).sort((a, b) => b[1] - a[1])[0]?.[0] as string
 
     setStats({
       weeklyCompletion: Object.entries(weeklyData).map(([week, count]) => ({
