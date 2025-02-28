@@ -4,7 +4,11 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts'
 
-export function Analytics({ habits }: { habits: any[] }) {
+interface AnalyticsProps {
+  habits: any[];
+}
+
+export function Analytics({ habits }: AnalyticsProps) {
   const [stats, setStats] = useState({
     weeklyCompletion: [],
     bestDay: '',
