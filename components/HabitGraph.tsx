@@ -13,7 +13,7 @@ const HabitGraph = ({ habit }: HabitGraphProps) => {
       date,
       completed: completed ? 1 : 0,
     }))
-    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
   return (
     <ResponsiveContainer width="100%" height={300}>
