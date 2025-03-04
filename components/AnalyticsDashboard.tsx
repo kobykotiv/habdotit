@@ -8,6 +8,7 @@ import { Card } from './ui/card';
 
 const AnalyticsDashboard = () => {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const eventChartRef = useRef<HTMLCanvasElement | null>(null);
   const completionChartRef = useRef<HTMLCanvasElement | null>(null);
   const statsChartRef = useRef<HTMLCanvasElement | null>(null);
@@ -21,21 +22,35 @@ const AnalyticsDashboard = () => {
   }, []);
 
   useEffect(() => {
-    const data = storage.getAnalytics();
-    setAnalyticsData(data);
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const data = await storage.getAnalytics();
+        setAnalyticsData(data);
+      } catch (error) {
+        console.error("Error fetching analytics data:", error);
+        setAnalyticsData(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (!analyticsData || isLoading) return;
 
     // Destroy existing charts
     chartInstances.current.forEach(chart => chart.destroy());
     chartInstances.current = [];
 
-    if (!data) return;
-
     // Event Distribution Chart
     if (eventChartRef.current) {
       const ctx = eventChartRef.current.getContext('2d');
       if (ctx) {
-        const eventTypes = Object.keys(data.eventCounts);
-        const eventCounts = Object.values(data.eventCounts);
+        const eventTypes = Object.keys(analyticsData.eventCounts);
+        const eventCounts = Object.values(analyticsData.eventCounts);
         
         const chart = new Chart(ctx, {
           type: 'doughnut',
@@ -84,7 +99,7 @@ const AnalyticsDashboard = () => {
           data: {
             labels: ['Completed', 'Remaining'],
             datasets: [{
-              data: [data.taskCompletionRate * 100, (1 - data.taskCompletionRate) * 100],
+              data: [analyticsData.taskCompletionRate * 100, (1 - analyticsData.taskCompletionRate) * 100],
               backgroundColor: ['rgba(75, 192, 192, 0.8)', 'rgba(200, 200, 200, 0.2)'],
               borderColor: ['rgba(75, 192, 192, 1)', 'rgba(200, 200, 200, 1)'],
               borderWidth: 1
@@ -114,7 +129,7 @@ const AnalyticsDashboard = () => {
             labels: ['Active Templates', 'Total Assets'],
             datasets: [{
               label: 'Count',
-              data: [data.activeTemplates, data.totalAssets],
+              data: [analyticsData.activeTemplates, analyticsData.totalAssets],
               backgroundColor: [
                 'rgba(54, 162, 235, 0.8)',
                 'rgba(255, 206, 86, 0.8)'
@@ -150,9 +165,15 @@ const AnalyticsDashboard = () => {
         chartInstances.current.push(chart);
       }
     }
-  }, []);
+  }, [analyticsData, isLoading]);
 
-  if (!analyticsData) return null;
+  if (isLoading) {
+    return <div className="p-4">Loading analytics...</div>;
+  }
+
+  if (!analyticsData) {
+    return <div className="p-4">Failed to load analytics data.</div>;
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
