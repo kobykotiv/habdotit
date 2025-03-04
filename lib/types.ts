@@ -1,11 +1,16 @@
+export interface HabitLog {
+  [date: string]: boolean;
+}
+
 export interface Habit {
   id: string;
   name: string;
+  description?: string;
   category: string;
   frequency: string;
   reminderTime: string;
   notes: string;
-  logs: { [key: string]: boolean };
+  logs: HabitLog;
   currentStreak: number;
   longestStreak: number;
   level: number;

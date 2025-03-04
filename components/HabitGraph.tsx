@@ -1,8 +1,13 @@
 "use client"
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { Habit } from '../lib/types';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
-const HabitGraph = ({ habit }) => {
+interface HabitGraphProps {
+  habit: Habit;
+}
+
+const HabitGraph = ({ habit }: HabitGraphProps) => {
   const data = Object.entries(habit.logs)
     .map(([date, completed]) => ({
       date,
