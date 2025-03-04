@@ -24,4 +24,3 @@ const HabitGraph = ({ habit }) => {
 }
 
 export default HabitGraph
-

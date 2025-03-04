@@ -32,13 +32,6 @@ import { AccessibilityMenu } from "@/components/AccessibilityMenu"
 import { requestHealthKitPermissions } from "@/lib/healthKit"
 import { Habit, Achievement, Profile, getDaysSinceCreation } from "@/lib/utils"
 import { ShareModalStats, ShareModalProps } from "@/lib/types"
-import { HabitSearch } from "@/components/HabitSearch"
-import type { HabitSuggestion } from "@/lib/habitSuggestions"
-import { CATEGORIES, type CategoryMap } from "@/lib/habitSuggestions"
-
-import { QuickStart } from "@/components/QuickStart"
-
-type Category = CategoryMap[keyof CategoryMap]
 
 interface NewHabitData {
   name: string;
@@ -257,15 +250,6 @@ const HabitTracker = () => {
     return () => clearInterval(backupInterval)
   }, [remindBackup])
 
-  const handleHabitSelect = (suggestion: HabitSuggestion): void => {
-    setNewHabit({
-      ...newHabit,
-      name: suggestion.name,
-      category: suggestion.category,
-      notes: suggestion.description || ""
-    })
-  }
-
   return (
     <div className="max-w-2xl mx-auto p-4">
       <Card className="mb-6">
@@ -307,26 +291,15 @@ const HabitTracker = () => {
               </div>
 
               <div>
-                <Label htmlFor="habit-name" className="text-lg">
-                  Habit Name
-                </Label>
-                <HabitSearch 
-                  onSelect={handleHabitSelect} 
-                  placeholder="Search or type habit to track..."
+                <Label htmlFor="habit-name" className="text-lg">Habit Name</Label>
+                <Input
+                  id="habit-name"
+                  type="text"
+                  value={newHabit.name}
+                  onChange={(e) => setNewHabit({ ...newHabit, name: e.target.value })}
+                  placeholder="Enter habit to track..."
+                  className="text-lg"
                 />
-                
-                {/* Show this if something is selected */}
-                {newHabit.name && (
-                  <div className="mt-2">
-                    <Input
-                      id="habit-name"
-                      type="text"
-                      value={newHabit.name}
-                      onChange={(e) => setNewHabit({ ...newHabit, name: e.target.value })}
-                      className="text-lg"
-                    />
-                  </div>
-                )}
               </div>
 
               <div>

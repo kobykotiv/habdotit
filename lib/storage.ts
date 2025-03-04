@@ -1,4 +1,5 @@
 import { Task, Event, Asset, Template, AnalyticsData } from './types';
+import { supabase, isDemoMode } from './supabaseClient';
 
 const STORAGE_KEYS = {
   TASKS: 'app_tasks',
@@ -10,8 +11,11 @@ const STORAGE_KEYS = {
 
 class StorageManager {
   private static instance: StorageManager;
+  private isDemo: boolean;
 
-  private constructor() {}
+  private constructor() {
+    this.isDemo = isDemoMode();
+  }
 
   static getInstance(): StorageManager {
     if (!StorageManager.instance) {
@@ -20,27 +24,52 @@ class StorageManager {
     return StorageManager.instance;
   }
 
-  private getItem<T>(key: string): T[] {
+  private async getFromDemo<T>(key: string): Promise<T[]> {
     if (typeof window === 'undefined') return [];
     const data = localStorage.getItem(key);
     return data ? JSON.parse(data) : [];
   }
 
-  private setItem<T>(key: string, value: T[]): void {
+  private async setToDemo<T>(key: string, value: T[]): Promise<void> {
     if (typeof window === 'undefined') return;
     localStorage.setItem(key, JSON.stringify(value));
   }
 
-  // Tasks
-  getTasks(): Task[] {
-    return this.getItem<Task>(STORAGE_KEYS.TASKS);
+  private async getFromSupabase<T>(table: string): Promise<T[]> {
+    if (!supabase) return [];
+    const { data, error } = await supabase.from(table).select('*');
+    if (error) {
+      console.error(`Error fetching from ${table}:`, error);
+      return [];
+    }
+    return data || [];
   }
 
-  addTask(task: Task): void {
-    const tasks = this.getTasks();
-    tasks.push(task);
-    this.setItem(STORAGE_KEYS.TASKS, tasks);
-    this.logEvent({
+  private async setToSupabase<T extends { id: string }>(table: string, value: T): Promise<void> {
+    if (!supabase) return;
+    const { error } = await supabase.from(table).upsert(value);
+    if (error) {
+      console.error(`Error saving to ${table}:`, error);
+    }
+  }
+
+  // Tasks
+  async getTasks(): Promise<Task[]> {
+    return this.isDemo
+      ? this.getFromDemo<Task>(STORAGE_KEYS.TASKS)
+      : this.getFromSupabase<Task>('tasks');
+  }
+
+  async addTask(task: Task): Promise<void> {
+    if (this.isDemo) {
+      const tasks = await this.getTasks();
+      tasks.push(task);
+      await this.setToDemo(STORAGE_KEYS.TASKS, tasks);
+    } else {
+      await this.setToSupabase('tasks', task);
+    }
+    
+    await this.logEvent({
       id: crypto.randomUUID(),
       type: 'TASK_CREATED',
       timestamp: new Date().toISOString(),
@@ -49,26 +78,39 @@ class StorageManager {
   }
 
   // Events
-  getEvents(): Event[] {
-    return this.getItem<Event>(STORAGE_KEYS.EVENTS);
+  async getEvents(): Promise<Event[]> {
+    return this.isDemo
+      ? this.getFromDemo<Event>(STORAGE_KEYS.EVENTS)
+      : this.getFromSupabase<Event>('events');
   }
 
-  logEvent(event: Event): void {
-    const events = this.getEvents();
-    events.push(event);
-    this.setItem(STORAGE_KEYS.EVENTS, events);
+  async logEvent(event: Event): Promise<void> {
+    if (this.isDemo) {
+      const events = await this.getEvents();
+      events.push(event);
+      await this.setToDemo(STORAGE_KEYS.EVENTS, events);
+    } else {
+      await this.setToSupabase('events', event);
+    }
   }
 
   // Assets
-  getAssets(): Asset[] {
-    return this.getItem<Asset>(STORAGE_KEYS.ASSETS);
+  async getAssets(): Promise<Asset[]> {
+    return this.isDemo
+      ? this.getFromDemo<Asset>(STORAGE_KEYS.ASSETS)
+      : this.getFromSupabase<Asset>('assets');
   }
 
-  addAsset(asset: Asset): void {
-    const assets = this.getAssets();
-    assets.push(asset);
-    this.setItem(STORAGE_KEYS.ASSETS, assets);
-    this.logEvent({
+  async addAsset(asset: Asset): Promise<void> {
+    if (this.isDemo) {
+      const assets = await this.getAssets();
+      assets.push(asset);
+      await this.setToDemo(STORAGE_KEYS.ASSETS, assets);
+    } else {
+      await this.setToSupabase('assets', asset);
+    }
+    
+    await this.logEvent({
       id: crypto.randomUUID(),
       type: 'ASSET_CREATED',
       timestamp: new Date().toISOString(),
@@ -77,15 +119,22 @@ class StorageManager {
   }
 
   // Templates
-  getTemplates(): Template[] {
-    return this.getItem<Template>(STORAGE_KEYS.TEMPLATES);
+  async getTemplates(): Promise<Template[]> {
+    return this.isDemo
+      ? this.getFromDemo<Template>(STORAGE_KEYS.TEMPLATES)
+      : this.getFromSupabase<Template>('templates');
   }
 
-  addTemplate(template: Template): void {
-    const templates = this.getTemplates();
-    templates.push(template);
-    this.setItem(STORAGE_KEYS.TEMPLATES, templates);
-    this.logEvent({
+  async addTemplate(template: Template): Promise<void> {
+    if (this.isDemo) {
+      const templates = await this.getTemplates();
+      templates.push(template);
+      await this.setToDemo(STORAGE_KEYS.TEMPLATES, templates);
+    } else {
+      await this.setToSupabase('templates', template);
+    }
+    
+    await this.logEvent({
       id: crypto.randomUUID(),
       type: 'TEMPLATE_CREATED',
       timestamp: new Date().toISOString(),
@@ -94,11 +143,13 @@ class StorageManager {
   }
 
   // Analytics
-  getAnalytics(): AnalyticsData {
-    const events = this.getEvents();
-    const tasks = this.getTasks();
-    const templates = this.getTemplates();
-    const assets = this.getAssets();
+  async getAnalytics(): Promise<AnalyticsData> {
+    const [events, tasks, templates, assets] = await Promise.all([
+      this.getEvents(),
+      this.getTasks(),
+      this.getTemplates(),
+      this.getAssets(),
+    ]);
 
     // Calculate event counts
     const eventCounts = events.reduce((acc, event) => {

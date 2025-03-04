@@ -59,4 +59,3 @@ export async function scheduleHabitReminder(habit: any) {
     data: { habitId: habit.id },
   })
 }
-

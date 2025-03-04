@@ -12,4 +12,3 @@ const StreakWidget = ({ streak }) => {
 }
 
 export default StreakWidget
-

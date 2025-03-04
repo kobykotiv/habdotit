@@ -10,8 +10,15 @@ import { Save } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import Cookies from "js-cookie"
 
+interface ProfileState {
+  nickname: string;
+  color1: string;
+  color2: string;
+  color3: string;
+}
+
 const Profile = () => {
-  const [profile, setProfile] = useState({
+  const [profile, setProfile] = useState<ProfileState>({
     nickname: "",
     color1: "#ff0000",
     color2: "#00ff00",
@@ -26,7 +33,7 @@ const Profile = () => {
     }
   }, [])
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setProfile({ ...profile, [e.target.name]: e.target.value })
   }
 
@@ -101,4 +108,3 @@ const Profile = () => {
 }
 
 export default Profile
-

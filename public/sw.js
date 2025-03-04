@@ -70,4 +70,3 @@ async function syncHabits() {
     await localforage.removeItem('pending_habits');
   }
 }
-

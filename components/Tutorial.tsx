@@ -26,4 +26,3 @@ const Tutorial = ({ isOpen, onClose }) => {
 }
 
 export default Tutorial
-
