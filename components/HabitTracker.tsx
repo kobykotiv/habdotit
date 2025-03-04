@@ -114,6 +114,7 @@ const HabitTracker = () => {
 
   const addHabit = async () => {
     if (newHabit.name.trim()) {
+      const now = new Date().toISOString();
       const habit: Habit = {
         id: Date.now().toString(),
         ...newHabit,
@@ -122,6 +123,7 @@ const HabitTracker = () => {
         longestStreak: 0,
         level: 1,
         points: 0,
+        updatedAt: now  // Add this field
       }
       setHabits([...habits, habit])
       
