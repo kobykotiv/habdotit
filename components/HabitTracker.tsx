@@ -30,8 +30,8 @@ import { Analytics } from "@/components/Analytics"
 import { ShareModal } from "@/components/ShareModal"
 import { AccessibilityMenu } from "@/components/AccessibilityMenu"
 import { requestHealthKitPermissions } from "@/lib/healthKit"
-import { Habit, Achievement, Profile, getDaysSinceCreation } from "@/lib/utils"
-import { ShareModalStats, ShareModalProps } from "@/lib/types"
+import { getDaysSinceCreation } from "@/lib/utils"
+import { Habit, Achievement, Profile, Category, ShareModalStats, ShareModalProps } from "@/lib/types"
 
 interface NewHabitData {
   name: string;
@@ -115,6 +115,7 @@ const HabitTracker = () => {
         longestStreak: 0,
         level: 1,
         points: 0,
+        updatedAt: new Date().toISOString()
       }
       setHabits([...habits, habit])
       

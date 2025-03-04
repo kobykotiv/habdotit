@@ -3,9 +3,32 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts'
+import { Habit } from '@/lib/types'
 
-export function Analytics({ habits }) {
-  const [stats, setStats] = useState({
+interface WeeklyCompletion {
+  week: string;
+  completions: number;
+}
+
+interface AnalyticsStats {
+  weeklyCompletion: WeeklyCompletion[];
+  bestDay: string;
+  totalCompletions: number;
+  averageStreak: number;
+}
+
+interface AnalyticsProps {
+  habits: Habit[];
+}
+
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  icon: string;
+}
+
+export function Analytics({ habits }: AnalyticsProps) {
+  const [stats, setStats] = useState<AnalyticsStats>({
     weeklyCompletion: [],
     bestDay: '',
     totalCompletions: 0,
@@ -18,7 +41,7 @@ export function Analytics({ habits }) {
 
   const calculateStats = () => {
     // Calculate weekly completion rates
-    const weeklyData = habits.reduce((acc, habit) => {
+    const weeklyData = habits.reduce((acc: { [key: string]: number }, habit) => {
       Object.keys(habit.logs).forEach(date => {
         const week = getWeekNumber(new Date(date))
         acc[week] = (acc[week] || 0) + 1
@@ -27,7 +50,7 @@ export function Analytics({ habits }) {
     }, {})
 
     // Find best performing day
-    const dayStats = habits.reduce((acc, habit) => {
+    const dayStats = habits.reduce((acc: { [key: string]: number }, habit) => {
       Object.keys(habit.logs).forEach(date => {
         const day = new Date(date).getDay()
         acc[day] = (acc[day] || 0) + 1
@@ -42,9 +65,9 @@ export function Analytics({ habits }) {
         week,
         completions: count
       })),
-      bestDay: getDayName(parseInt(bestDay)),
+      bestDay: bestDay ? getDayName(parseInt(bestDay)) : 'N/A',
       totalCompletions: Object.values(dayStats).reduce((a, b) => a + b, 0),
-      averageStreak: habits.reduce((acc, habit) => acc + habit.currentStreak, 0) / habits.length
+      averageStreak: habits.length ? habits.reduce((acc, habit) => acc + (habit.currentStreak || 0), 0) / habits.length : 0
     })
   }
 
@@ -87,7 +110,7 @@ export function Analytics({ habits }) {
   )
 }
 
-function StatCard({ title, value, icon }) {
+function StatCard({ title, value, icon }: StatCardProps) {
   return (
     <Card>
       <CardContent className="pt-4">

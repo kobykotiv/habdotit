@@ -1,8 +1,15 @@
 export interface Habit {
   id: string;
   name: string;
+  category: string;
+  frequency: string;
+  reminderTime: string;
+  notes: string;
   logs: { [key: string]: boolean };
-  category?: string;
+  currentStreak: number;
+  longestStreak: number;
+  level: number;
+  points: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -74,4 +81,9 @@ export interface AnalyticsData {
   taskCompletionRate: number;
   activeTemplates: number;
   totalAssets: number;
+}
+
+export interface Profile {
+  color1?: string;
+  [key: string]: any;
 }

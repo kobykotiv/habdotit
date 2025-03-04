@@ -1,11 +1,12 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+import type { Habit, Achievement, Profile } from "./types"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export const getDaysSinceCreation = (habit: { createdAt?: string }) => {
+export const getDaysSinceCreation = (habit: Pick<Habit, 'createdAt'>) => {
   if (!habit.createdAt) return 1;
   const creationDate = new Date(habit.createdAt);
   const today = new Date();
@@ -14,29 +15,5 @@ export const getDaysSinceCreation = (habit: { createdAt?: string }) => {
   return diffDays || 1;
 };
 
-export interface Habit {
-  id: string;
-  name: string;
-  category: string;
-  frequency: string;
-  reminderTime: string;
-  notes: string;
-  logs: { [key: string]: boolean };
-  currentStreak: number;
-  longestStreak: number;
-  level: number;
-  points: number;
-  createdAt?: string;
-}
-
-export interface Achievement {
-  id: string;
-  icon: string;
-  title: string;
-  description: string;
-}
-
-export interface Profile {
-  color1?: string;
-  [key: string]: any;
-}
+// Re-export types for convenience
+export type { Habit, Achievement, Profile };
