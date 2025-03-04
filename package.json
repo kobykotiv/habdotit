@@ -53,7 +53,7 @@
     "js-cookie": "latest",
     "localforage": "^1.10.0",
     "lucide-react": "^0.454.0",
-    "next": "14.2.16",
+    "next": "14.2.21",
     "next-themes": "^0.4.4",
     "react": "^18",
     "react-day-picker": "8.10.1",
