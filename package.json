@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3001",
-    "build": "rimraf .next && next build",
-    "start": "next start -p 3001",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
     "lint": "next lint",
-    "vercel-build": "next build"
+    "vercel-build": "rimraf .next && next build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
