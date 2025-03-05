@@ -1,4 +1,4 @@
-import { Habit, HabitEntry, HabitStats } from '../types/models';
+import { Habit, HabitEntry, HabitRecommendation, HabitStats } from '../types/models';
 
 interface PredictionInput {
     userId: string;
@@ -7,13 +7,6 @@ interface PredictionInput {
     difficulty: number;
     currentHabits: string[];
     successRates: number[];
-}
-
-export interface HabitRecommendation {
-    title: string;
-    category: string;
-    difficulty: number;
-    predictedSuccessRate: number;
 }
 
 export async function predictSuccessRate(input: PredictionInput): Promise<number> {
@@ -27,6 +20,10 @@ export async function predictSuccessRate(input: PredictionInput): Promise<number
 }
 
 export class RecommendationsGeneratorService {
+    private generateId(): string {
+        return Math.random().toString(36).substring(2) + Date.now().toString(36);
+    }
+
     private readonly habitCategories = [
         { 
             name: 'health',
@@ -150,9 +147,9 @@ export class RecommendationsGeneratorService {
         }
     ];
 
-    private getDifficulty(habitTitle: string): number {
+    private getDifficulty(habitTitle: string): 1 | 2 | 3 | 4 | 5 {
         // Simplified difficulty rating (1-5)
-        return Math.ceil(Math.random() * 5);
+        return Math.ceil(Math.random() * 5) as 1 | 2 | 3 | 4 | 5;
     }
 
     async generateRecommendations(
@@ -182,10 +179,19 @@ export class RecommendationsGeneratorService {
             });
 
             recommendations.push({
+                id: this.generateId(),
+                userId,
                 title: selectedHabit,
+                description: `Recommended based on your current habits and success patterns.`,
                 category: category.name,
-                difficulty,
-                predictedSuccessRate: successRate
+                estimatedDifficulty: difficulty,
+                reasoning: `This habit aligns with your interests in ${category.name} and has a predicted success rate of ${successRate}%.`,
+                suggestedFrequency: {
+                    type: 'daily',
+                    timesPerPeriod: 1
+                },
+                confidence: successRate,
+                basedOnHabits: currentHabitTitles
             });
         }
 

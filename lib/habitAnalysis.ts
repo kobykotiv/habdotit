@@ -73,6 +73,27 @@ export async function analyzeHabitPatterns(habits: Habit[]): Promise<HabitPatter
     }
   }
 
+  // Schedule notifications based on detected patterns
+  const notificationService = NotificationService.getInstance();
+  
+  patterns.forEach(async pattern => {
+    const habit = habits.find(h => h.id === pattern.habitId);
+    if (habit) {
+      // Schedule reminder slightly before user's typical completion time
+      const preferredTime = pattern.timeOfDay === 'morning' ? '08:00' :
+                          pattern.timeOfDay === 'afternoon' ? '13:00' : '18:00';
+                          
+      // Higher frequency for habits with low completion rate
+      if (pattern.predictedSuccess < 0.5) {
+        await notificationService.scheduleNotification({
+          ...habit,
+          reminderTime: preferredTime,
+          frequency: 'hourly'
+        });
+      }
+    }
+  });
+
   return patterns;
 }
 

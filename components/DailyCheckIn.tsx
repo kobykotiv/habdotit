@@ -27,6 +27,31 @@ export function DailyCheckIn({ habits }: DailyCheckInProps) {
     setCompletedToday(completed)
   }, [habits])
 
+  useEffect(() => {
+    const checkRiskPeriods = async () => {
+      const notificationService = NotificationService.getInstance();
+      const hour = new Date().getHours();
+
+      // Identify high-risk periods based on category
+      const criticalHabits = habits.filter(h => 
+        (h.category === "substances-track" || h.category === "substances-recovery") &&
+        !completedToday.includes(h.id)
+      );
+
+      // Evening/night are often higher risk periods
+      if (hour >= 18 && criticalHabits.length > 0) {
+        for (const habit of criticalHabits) {
+          await notificationService.scheduleNotification({
+            ...habit,
+            message: "Stay strong! Remember your goals."
+          });
+        }
+      }
+    };
+
+    checkRiskPeriods();
+  }, [habits, completedToday, timeOfDay]);
+
   const getTimeIcon = () => {
     switch (timeOfDay) {
       case 'morning':

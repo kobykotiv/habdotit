@@ -1,4 +1,4 @@
-import { Task, Event, Asset, Template, AnalyticsData } from './types';
+import { Task, Event, Asset, Template, AnalyticsData, Habit } from './types';
 import { supabase, isDemoMode } from './supabaseClient';
 
 const STORAGE_KEYS = {
@@ -7,6 +7,10 @@ const STORAGE_KEYS = {
   ASSETS: 'app_assets',
   TEMPLATES: 'app_templates',
   ANALYTICS: 'app_analytics',
+  HABITS: 'habits',
+  PROFILE: 'profile',
+  ENTRIES: 'habit_entries',
+  SETTINGS: 'settings'
 } as const;
 
 class StorageManager {
@@ -168,6 +172,111 @@ class StorageManager {
       totalAssets: assets.length,
     };
   }
+
+  // Habits
+  async saveHabits(habits: Habit[]): Promise<void> {
+    try {
+      this.getStorage().setItem(STORAGE_KEYS.HABITS, JSON.stringify(habits));
+    } catch (error) {
+      console.error('Error saving habits:', error);
+      throw new Error('Failed to save habits');
+    }
+  }
+
+  async getHabits(): Promise<Habit[]> {
+    try {
+      const habits = this.getStorage().getItem(STORAGE_KEYS.HABITS);
+      return habits ? JSON.parse(habits) : [];
+    } catch (error) {
+      console.error('Error loading habits:', error);
+      return [];
+    }
+  }
+
+  async deleteHabit(habitId: string): Promise<void> {
+    if (confirm('Are you sure you want to delete this habit? This action cannot be undone.')) {
+      try {
+        const habits = await this.getHabits();
+        const filteredHabits = habits.filter(h => h.id !== habitId);
+        await this.saveHabits(filteredHabits);
+      } catch (error) {
+        console.error('Error deleting habit:', error);
+        throw new Error('Failed to delete habit');
+      }
+    }
+  }
+
+  async clearAllData(): Promise<void> {
+    if (confirm('WARNING: This will delete all your habit data. This action cannot be undone. Are you sure?')) {
+      if (confirm('Last chance: Are you REALLY sure you want to delete all your data?')) {
+        try {
+          this.getStorage().clear();
+        } catch (error) {
+          console.error('Error clearing data:', error);
+          throw new Error('Failed to clear data');
+        }
+      }
+    }
+  }
+
+  async exportData(): Promise<string> {
+    try {
+      const data = {
+        habits: await this.getHabits(),
+        profile: this.getStorage().getItem(STORAGE_KEYS.PROFILE),
+        entries: this.getStorage().getItem(STORAGE_KEYS.ENTRIES),
+        settings: this.getStorage().getItem(STORAGE_KEYS.SETTINGS)
+      };
+      return JSON.stringify(data, null, 2);
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      throw new Error('Failed to export data');
+    }
+  }
+
+  async importData(jsonString: string): Promise<void> {
+    try {
+      const data = JSON.parse(jsonString);
+      if (!data.habits) {
+        throw new Error('Invalid data format');
+      }
+      
+      if (confirm('Importing data will overwrite your existing data. Continue?')) {
+        await this.saveHabits(data.habits);
+        if (data.profile) {
+          this.getStorage().setItem(STORAGE_KEYS.PROFILE, data.profile);
+        }
+        if (data.entries) {
+          this.getStorage().setItem(STORAGE_KEYS.ENTRIES, data.entries);
+        }
+        if (data.settings) {
+          this.getStorage().setItem(STORAGE_KEYS.SETTINGS, data.settings);
+        }
+      }
+    } catch (error) {
+      console.error('Error importing data:', error);
+      throw new Error('Failed to import data');
+    }
+  }
+
+  private getStorage() {
+    return window.localStorage;
+  }
 }
 
 export const storage = StorageManager.getInstance();
+
+export class StorageService {
+  private static instance: StorageService;
+
+  public static getInstance(): StorageService {
+    if (!StorageService.instance) {
+      StorageService.instance = new StorageService();
+    }
+    return StorageService.instance;
+  }
+
+  public async importData(text: string): Promise<void> {
+    // Implementation here
+  }
+}

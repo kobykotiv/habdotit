@@ -35,6 +35,7 @@ import { ShareModalStats, ShareModalProps } from "@/lib/types"
 import { HabitSearch } from "@/components/HabitSearch"
 import type { HabitSuggestion } from "@/lib/habitSuggestions"
 import { CATEGORIES, type CategoryMap } from "@/lib/habitSuggestions"
+import { StorageService } from '../lib/storage';
 
 import { QuickStart } from "@/components/QuickStart"
 
@@ -68,12 +69,11 @@ const HabitTracker = () => {
   const [healthSync, setHealthSync] = useState(false)
 
   useEffect(() => {
-    const loadHabits = () => {
-      const savedHabits = Cookies.get("habits")
-      if (savedHabits) {
-        setHabits(JSON.parse(savedHabits))
-      }
-    }
+    const loadHabits = async () => {
+      const storage = StorageService.getInstance();
+      const savedHabits = await storage.getHabits();
+      setHabits(savedHabits);
+    };
 
     loadHabits()
 
@@ -90,7 +90,8 @@ const HabitTracker = () => {
   }, [])
 
   useEffect(() => {
-    Cookies.set("habits", JSON.stringify(habits), { expires: 365 })
+    const storage = StorageService.getInstance();
+    storage.saveHabits(habits);
   }, [habits])
 
   useEffect(() => {
@@ -112,6 +113,21 @@ const HabitTracker = () => {
     initHealthKit()
   }, [])
 
+  const scheduleReminders = async (habit: Habit) => {
+    const notificationService = NotificationService.getInstance();
+    
+    // Schedule based on habit category
+    if (habit.category === "substances-track" || habit.category === "substances-recovery") {
+      // More frequent check-ins for addiction tracking
+      await notificationService.scheduleNotification({
+        ...habit,
+        frequency: "hourly"
+      });
+    } else {
+      await notificationService.scheduleNotification(habit);
+    }
+  };
+
   const addHabit = async () => {
     if (newHabit.name.trim()) {
       const now = new Date().toISOString();
@@ -132,6 +148,9 @@ const HabitTracker = () => {
         await scheduleHabitReminder(habit)
       }
       
+      // Schedule initial reminders
+      await scheduleReminders(habit);
+
       setNewHabit({
         name: "",
         category: "health-positive",
@@ -148,7 +167,7 @@ const HabitTracker = () => {
     }
   }
 
-  const toggleHabit = (habitId: string) => {
+  const toggleHabit = async (habitId: string) => {
     const today = new Date().toISOString().split("T")[0]
 
     setHabits(
@@ -159,6 +178,8 @@ const HabitTracker = () => {
             delete newLogs[today]
           } else {
             newLogs[today] = true
+            // Schedule next reminder when marking complete
+            scheduleReminders(habit);
           }
 
           let currentStreak = 0
@@ -221,7 +242,9 @@ const HabitTracker = () => {
     setAchievements(earned)
   }
 
-  const deleteHabit = (habitId: string) => {
+  const deleteHabit = async (habitId: string) => {
+    const storage = StorageService.getInstance();
+    await storage.deleteHabit(habitId);
     setHabits(habits.filter((habit) => habit.id !== habitId))
     toast({
       title: "Habit deleted",
@@ -229,8 +252,9 @@ const HabitTracker = () => {
     })
   }
 
-  const exportToJson = useCallback(() => {
-    const dataStr = JSON.stringify(habits, null, 2)
+  const exportToJson = useCallback(async () => {
+    const storage = StorageService.getInstance();
+    const dataStr = await storage.exportData();
     const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(dataStr)
     const exportFileDefaultName = "habits.json"
 
@@ -243,7 +267,7 @@ const HabitTracker = () => {
       title: "Data exported! 📤",
       description: "Your habits data has been saved as a JSON file.",
     })
-  }, [habits, toast])
+  }, [toast])
 
   const remindBackup = useCallback(() => {
     toast({

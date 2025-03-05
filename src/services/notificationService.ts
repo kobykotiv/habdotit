@@ -226,10 +226,4 @@ export class NotificationService {
   }
 }
 
-export const notificationService = new NotificationService();
-
-// Initialize on app start
-await notificationService.init();
-
-// Schedule reminders for a habit
-await notificationService.scheduleReminders(habit);
+NotificationService.getInstance();
