@@ -34,7 +34,7 @@ export function Settings() {
 
   const handleExport = async () => {
     try {
-      const data = await StorageService.getInstance().exportData();
+      const data: string = await StorageService.getInstance().exportData();
       const blob = new Blob([data], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');

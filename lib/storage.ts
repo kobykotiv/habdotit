@@ -267,6 +267,15 @@ class StorageManager {
 export const storage = StorageManager.getInstance();
 
 export class StorageService {
+  deleteHabit(habitId: string) {
+    throw new Error("Method not implemented.");
+  }
+  clearAllData() {
+    throw new Error('Method not implemented.');
+  }
+  exportData() {
+    throw new Error('Method not implemented.');
+  }
   private static instance: StorageService;
 
   public static getInstance(): StorageService {

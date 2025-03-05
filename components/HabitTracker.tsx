@@ -35,7 +35,8 @@ import { ShareModalStats, ShareModalProps } from "@/lib/types"
 import { HabitSearch } from "@/components/HabitSearch"
 import type { HabitSuggestion } from "@/lib/habitSuggestions"
 import { CATEGORIES, type CategoryMap } from "@/lib/habitSuggestions"
-import { StorageService } from '../lib/storage';
+import { storage, StorageService } from '../lib/storage';
+import { NotificationService, notificationService } from '../src/services/notificationService';
 
 import { QuickStart } from "@/components/QuickStart"
 
@@ -44,7 +45,7 @@ type Category = CategoryMap[keyof CategoryMap]
 interface NewHabitData {
   name: string;
   category: string;
-  frequency: string;
+  frequency: 'daily' | 'hourly' | 'weekly' | 'every-15-minutes';
   reminderTime: string;
   notes: string;
   createdAt: string;
@@ -70,7 +71,6 @@ const HabitTracker = () => {
 
   useEffect(() => {
     const loadHabits = async () => {
-      const storage = StorageService.getInstance();
       const savedHabits = await storage.getHabits();
       setHabits(savedHabits);
     };
@@ -90,7 +90,6 @@ const HabitTracker = () => {
   }, [])
 
   useEffect(() => {
-    const storage = StorageService.getInstance();
     storage.saveHabits(habits);
   }, [habits])
 
@@ -254,7 +253,7 @@ const HabitTracker = () => {
 
   const exportToJson = useCallback(async () => {
     const storage = StorageService.getInstance();
-    const dataStr = await storage.exportData();
+    const dataStr = await storage.exportData() as string;
     const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(dataStr)
     const exportFileDefaultName = "habits.json"
 
@@ -359,7 +358,8 @@ const HabitTracker = () => {
                 <Label htmlFor="frequency" className="text-lg">Frequency</Label>
                 <Select
                   value={newHabit.frequency}
-                  onValueChange={(value) => setNewHabit({ ...newHabit, frequency: value })}
+                  onValueChange={(value: 'daily' | 'hourly' | 'weekly' | 'every-15-minutes') =>
+                    setNewHabit({ ...newHabit, frequency: value })}
                 >
                   <SelectTrigger id="frequency">
                     <SelectValue placeholder="Select frequency" />
