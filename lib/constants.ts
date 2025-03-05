@@ -1,6 +1,19 @@
 import type { HabitSuggestion } from './habitSuggestions';
 
-export const HABIT_CATEGORIES = [
+interface CategoryOption {
+  value: string;
+  label: string;
+  color: string;
+  emoji: string;
+  examples: string[];
+}
+
+interface FrequencyOption {
+  value: 'daily' | 'hourly' | 'weekly' | 'every-15-minutes';
+  label: string;
+}
+
+export const HABIT_CATEGORIES: CategoryOption[] = [
   {
     value: "health-positive",
     label: "Health (Positive)",
@@ -59,14 +72,14 @@ export const HABIT_CATEGORIES = [
   },
 ]
 
-export const FREQUENCY_OPTIONS = [
+export const FREQUENCY_OPTIONS: FrequencyOption[] = [
   { value: "daily", label: "Daily" },
   { value: "hourly", label: "Hourly" },
   { value: "weekly", label: "Weekly" },
   { value: "every-15-minutes", label: "Every 15 Minutes" },
 ]
 
-export const DATA_SOVEREIGNTY_MESSAGE =
+export const DATA_SOVEREIGNTY_MESSAGE: string =
   "Your data is stored in cookies on your device. Accept cookies to enable data saving and Carbon ads. Remember to backup regularly to keep your habits data safe!"
 
 export const QUICK_START_HABITS: HabitSuggestion[] = [
