@@ -1,5 +1,6 @@
 "use client"
 
+import React from 'react';
 import { Habit } from '../lib/types';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -7,7 +8,7 @@ interface HabitGraphProps {
   habit: Habit;
 }
 
-const HabitGraph = ({ habit }: HabitGraphProps) => {
+const HabitGraph: React.FC<HabitGraphProps> = ({ habit }) => {
   const data = Object.entries(habit.logs)
     .map(([date, completed]) => ({
       date,
