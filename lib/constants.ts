@@ -1,3 +1,5 @@
+import type { HabitSuggestion } from './habitSuggestions';
+
 export const HABIT_CATEGORIES = [
   {
     value: "health-positive",
@@ -66,3 +68,34 @@ export const FREQUENCY_OPTIONS = [
 
 export const DATA_SOVEREIGNTY_MESSAGE =
   "Your data is stored in cookies on your device. Accept cookies to enable data saving and Carbon ads. Remember to backup regularly to keep your habits data safe!"
+
+export const QUICK_START_HABITS: HabitSuggestion[] = [
+  {
+    name: "Daily Exercise",
+    description: "Regular physical activity of any kind",
+    category: "physical-activity",
+    tags: ["fitness", "movement", "health", "strength", "cardio"],
+    difficulty: "medium"
+  },
+  {
+    name: "Daily Meditation",
+    description: "Regular meditation practice for mental clarity",
+    category: "mental-wellbeing",
+    tags: ["mindfulness", "relaxation", "stress reduction", "mental health"],
+    difficulty: "medium"
+  },
+  {
+    name: "Hydration",
+    description: "Track daily water intake",
+    category: "health-positive",
+    tags: ["water", "drinking", "health", "basics"],
+    difficulty: "easy"
+  },
+  {
+    name: "Sleep Hygiene",
+    description: "Maintain a consistent sleep schedule and habits",
+    category: "health-positive",
+    tags: ["sleep", "rest", "recovery", "health", "routine"],
+    difficulty: "medium"
+  }
+]
