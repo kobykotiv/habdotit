@@ -22,10 +22,9 @@ export function DailyCheckIn({ habits }: DailyCheckInProps) {
     else if (hour < 17) setTimeOfDay('afternoon')
     else setTimeOfDay('evening')
 
-    // Get today's completed habits
-    const today = new Date().toISOString().split('T')[0]
-    const completed = habits.filter(habit => habit.logs[today]).map(habit => habit.id)
-    setCompletedToday(completed)
+    // TODO: Replace with proper habit completion tracking once implemented
+    
+    setCompletedToday([])
   }, [habits])
 
   useEffect(() => {
@@ -42,9 +41,9 @@ export function DailyCheckIn({ habits }: DailyCheckInProps) {
       if (hour >= 18 && criticalHabits.length > 0) {
         for (const habit of criticalHabits) {
           await notificationService.scheduleNotification({
-            ...habit,
-            message: "Stay strong! Remember your goals.",
-            name: ''
+            id: habit.id,
+            name: habit.title,
+            message: "Stay strong! Remember your goals."
           });
         }
       }
@@ -111,7 +110,7 @@ export function DailyCheckIn({ habits }: DailyCheckInProps) {
                     <Circle className="h-5 w-5 text-muted-foreground" />
                   )}
                   <span className={`flex-1 text-sm ${isCompleted ? 'line-through text-muted-foreground' : ''}`}>
-                    {habit.name}
+                   {habit.title}
                   </span>
                   {!isCompleted && (
                     <Button
