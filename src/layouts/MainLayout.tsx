@@ -1,11 +1,14 @@
+import Navbar from '@/components/Navbar';
 import { NotificationPermission } from '../components/NotificationPermission';
 
-// ...existing code...
-return (
-  <div className="main-layout">
-    <Navbar />
-    <NotificationPermission />
-    {/* ...existing code... */}
-  </div>
-);
-// ...existing code...
+const MainLayout = () => {
+  return (
+    <div className="main-layout">
+      <Navbar />
+      <NotificationPermission />
+      {/* ...existing code... */}
+    </div>
+  );
+};
+
+export default MainLayout;
