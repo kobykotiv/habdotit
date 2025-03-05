@@ -103,6 +103,11 @@ export class NotificationService {
       data: payload.data
     });
   }
+
+  getPermissionStatus(): NotificationPermissionStatus {
+    if (!this.isSupported()) return 'denied';
+    return Notification.permission as NotificationPermissionStatus;
+  }
 }
 
 export const notificationService = NotificationService.getInstance();
