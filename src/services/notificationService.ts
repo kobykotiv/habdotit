@@ -108,6 +108,22 @@ export class NotificationService {
     if (!this.isSupported()) return 'denied';
     return Notification.permission as NotificationPermissionStatus;
   }
+
+  async scheduleNotification(habit: { id: string; name: string; message: string }): Promise<boolean> {
+    if (!this.isSupported() || Notification.permission !== 'granted') return false;
+
+    try {
+      await this.showNotification({
+        title: habit.name,
+        body: habit.message,
+        data: { habitId: habit.id }
+      });
+      return true;
+    } catch (error) {
+      console.error('Failed to schedule notification:', error);
+      return false;
+    }
+  }
 }
 
 export const notificationService = NotificationService.getInstance();

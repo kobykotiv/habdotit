@@ -1,12 +1,12 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
+import { Button } from './ui/button'
+import { Progress } from './ui/progress'
 import { CheckCircle, Circle, Sun, Moon, Sunrise } from 'lucide-react'
-import type { Habit } from '@/lib/types'
-import { NotificationService } from '@/services/notificationService'
+import type { Habit } from '../src/types/models'
+import { notificationService } from '../src/services/notificationService'
 
 interface DailyCheckInProps {
   habits: Habit[]
@@ -30,11 +30,10 @@ export function DailyCheckIn({ habits }: DailyCheckInProps) {
 
   useEffect(() => {
     const checkRiskPeriods = async () => {
-      const notificationService = NotificationService.getInstance();
       const hour = new Date().getHours();
 
       // Identify high-risk periods based on category
-      const criticalHabits = habits.filter(h => 
+      const criticalHabits = habits.filter(h =>
         (h.category === "substances-track" || h.category === "substances-recovery") &&
         !completedToday.includes(h.id)
       );
@@ -44,7 +43,8 @@ export function DailyCheckIn({ habits }: DailyCheckInProps) {
         for (const habit of criticalHabits) {
           await notificationService.scheduleNotification({
             ...habit,
-            message: "Stay strong! Remember your goals."
+            message: "Stay strong! Remember your goals.",
+            name: ''
           });
         }
       }

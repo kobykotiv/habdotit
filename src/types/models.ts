@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 export interface User {
   id: string;
   email: string;
@@ -24,6 +26,8 @@ export interface UserPreferences {
 }
 
 export interface Habit {
+  logs: any;
+  name: ReactNode;
   id: string;
   userId: string;
   title: string;
