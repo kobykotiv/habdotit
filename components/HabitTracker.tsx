@@ -17,28 +17,28 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Progress } from "@/components/ui/progress"
-import HabitGraph from "@/components/HabitGraph"
-import StreakWidget from "@/components/StreakWidget"
-import Tutorial from "@/components/Tutorial"
-import { HABIT_CATEGORIES, FREQUENCY_OPTIONS } from "../lib/constants"
+import HabitGraph from "./HabitGraph"
+import StreakWidget from "./StreakWidget"
+import Tutorial from "./Tutorial"
+import { HABIT_CATEGORIES, FREQUENCY_OPTIONS } from "@/lib/constants"
 import Cookies from "js-cookie"
 import { useTheme } from "next-themes"
-import { ThemeToggle } from "@/components/ThemeToggle"
+import { ThemeToggle } from "./ThemeToggle"
 import { scheduleHabitReminder } from "@/lib/pushNotifications"
 import { checkAchievements } from "@/lib/achievements"
-import { Analytics } from "@/components/Analytics"
-import { ShareModal } from "@/components/ShareModal"
-import { AccessibilityMenu } from "@/components/AccessibilityMenu"
+import { Analytics } from "./Analytics"
+import { ShareModal } from "./ShareModal"
+import { AccessibilityMenu } from "./AccessibilityMenu"
 import { requestHealthKitPermissions } from "@/lib/healthKit"
 import { Habit, Achievement, Profile, getDaysSinceCreation } from "@/lib/utils"
 import { ShareModalStats, ShareModalProps } from "@/lib/types"
-import { HabitSearch } from "@/components/HabitSearch"
+import { HabitSearch } from "./HabitSearch"
 import type { HabitSuggestion } from "@/lib/habitSuggestions"
 import { CATEGORIES, type CategoryMap } from "@/lib/habitSuggestions"
-import { storage, StorageService } from '../lib/storage';
-import { NotificationService, notificationService } from '../src/services/notificationService';
+import { storage } from '@/lib/storage'
+import { NotificationService } from '../src/services/notificationService'
 
-import { QuickStart } from "@/components/QuickStart"
+import { QuickStart } from "./QuickStart"
 
 type Category = CategoryMap[keyof CategoryMap]
 
@@ -119,11 +119,16 @@ const HabitTracker = () => {
     if (habit.category === "substances-track" || habit.category === "substances-recovery") {
       // More frequent check-ins for addiction tracking
       await notificationService.scheduleNotification({
-        ...habit,
-        frequency: "hourly"
+        id: habit.id,
+        name: habit.name,
+        message: "Time to check in on your habit!"
       });
     } else {
-      await notificationService.scheduleNotification(habit);
+      await notificationService.scheduleNotification({
+        id: habit.id,
+        name: habit.name,
+        message: `Time to track ${habit.name}!`
+      });
     }
   };
 
@@ -138,7 +143,7 @@ const HabitTracker = () => {
         longestStreak: 0,
         level: 1,
         points: 0,
-        updatedAt: now  // Add this field
+        updatedAt: now
       }
       setHabits([...habits, habit])
       
@@ -242,30 +247,44 @@ const HabitTracker = () => {
   }
 
   const deleteHabit = async (habitId: string) => {
-    const storage = StorageService.getInstance();
-    await storage.deleteHabit(habitId);
-    setHabits(habits.filter((habit) => habit.id !== habitId))
-    toast({
-      title: "Habit deleted",
-      description: "Don't worry, you can always add it back later!",
-    })
+    try {
+      await storage.deleteHabit(habitId);
+      setHabits(habits.filter((habit) => habit.id !== habitId))
+      toast({
+        title: "Habit deleted",
+        description: "Don't worry, you can always add it back later!",
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete habit. Please try again.",
+        variant: "destructive"
+      })
+    }
   }
 
   const exportToJson = useCallback(async () => {
-    const storage = StorageService.getInstance();
-    const dataStr = await storage.exportData() as string;
-    const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(dataStr)
-    const exportFileDefaultName = "habits.json"
+    try {
+      const dataStr = await storage.exportData();
+      const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
+      const exportFileDefaultName = "habits.json";
 
-    const linkElement = document.createElement("a")
-    linkElement.setAttribute("href", dataUri)
-    linkElement.setAttribute("download", exportFileDefaultName)
-    linkElement.click()
+      const linkElement = document.createElement("a");
+      linkElement.setAttribute("href", dataUri);
+      linkElement.setAttribute("download", exportFileDefaultName);
+      linkElement.click();
 
-    toast({
-      title: "Data exported! 📤",
-      description: "Your habits data has been saved as a JSON file.",
-    })
+      toast({
+        title: "Data exported! 📤",
+        description: "Your habits data has been saved as a JSON file.",
+      });
+    } catch (error) {
+      toast({
+        title: "Export failed",
+        description: "There was an error exporting your data.",
+        variant: "destructive"
+      });
+    }
   }, [toast])
 
   const remindBackup = useCallback(() => {

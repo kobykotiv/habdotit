@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle, Download, Upload, Trash2 } from 'lucide-react';
-import { StorageService } from '../lib/storage';
+import { storage } from '@/lib/storage';
 import { useToast } from '@/components/ui/use-toast';
 
 export function Settings() {
@@ -16,15 +16,16 @@ export function Settings() {
     try {
       setImporting(true);
       const text = await file.text();
-      await StorageService.getInstance().importData(text);
+      await storage.importData(text);
       toast({
         title: "Data imported successfully",
         description: "Your data has been imported. You may need to refresh the page.",
       });
+      window.location.reload(); // Refresh to show imported data
     } catch (error) {
       toast({
         title: "Import failed",
-        description: "There was an error importing your data.",
+        description: "There was an error importing your data. Please make sure the file is valid.",
         variant: "destructive",
       });
     } finally {
@@ -34,7 +35,7 @@ export function Settings() {
 
   const handleExport = async () => {
     try {
-      const data: string = await StorageService.getInstance().exportData();
+      const data = await storage.exportData();
       const blob = new Blob([data], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -44,6 +45,11 @@ export function Settings() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Export successful",
+        description: "Your data has been exported to a JSON file.",
+      });
     } catch (error) {
       toast({
         title: "Export failed",
@@ -55,7 +61,7 @@ export function Settings() {
 
   const handleClearData = async () => {
     try {
-      await StorageService.getInstance().clearAllData();
+      await storage.clearAllData();
       toast({
         title: "Data cleared",
         description: "All your data has been deleted. The page will refresh.",
@@ -104,10 +110,20 @@ export function Settings() {
           <Trash2 className="w-4 h-4 mr-2" />
           Clear All Data
         </Button>
-        <p className="text-sm text-muted-foreground">
-          <AlertTriangle className="w-4 h-4 inline mr-2" />
-          Your data is stored locally in your browser. Clear browser data/cache will delete all your habits data.
-        </p>
+        <div className="p-4 border rounded-lg bg-muted/50">
+          <div className="flex items-start">
+            <AlertTriangle className="w-4 h-4 mr-2 mt-0.5 text-yellow-500" />
+            <div className="text-sm text-muted-foreground">
+              <p className="font-medium mb-1">Important Notes:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Your data is stored locally in your browser</li>
+                <li>Clearing browser data/cache will delete all your habits data</li>
+                <li>Regular backups are recommended to prevent data loss</li>
+                <li>You can import data from another device using the export/import feature</li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

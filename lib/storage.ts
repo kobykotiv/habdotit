@@ -267,16 +267,12 @@ class StorageManager {
 export const storage = StorageManager.getInstance();
 
 export class StorageService {
-  deleteHabit(habitId: string) {
-    throw new Error("Method not implemented.");
-  }
-  clearAllData() {
-    throw new Error('Method not implemented.');
-  }
-  exportData() {
-    throw new Error('Method not implemented.');
-  }
   private static instance: StorageService;
+  private manager: StorageManager;
+
+  private constructor() {
+    this.manager = StorageManager.getInstance();
+  }
 
   public static getInstance(): StorageService {
     if (!StorageService.instance) {
@@ -285,7 +281,19 @@ export class StorageService {
     return StorageService.instance;
   }
 
-  public async importData(text: string): Promise<void> {
-    // Implementation here
+  async deleteHabit(habitId: string): Promise<void> {
+    return this.manager.deleteHabit(habitId);
+  }
+
+  async clearAllData(): Promise<void> {
+    return this.manager.clearAllData();
+  }
+
+  async exportData(): Promise<string> {
+    return this.manager.exportData();
+  }
+
+  async importData(text: string): Promise<void> {
+    return this.manager.importData(text);
   }
 }
