@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { CheckCircle, Circle, Sun, Moon, Sunrise } from 'lucide-react'
 import type { Habit } from '@/lib/types'
+import { NotificationService } from '@/services/notificationService'
 
 interface DailyCheckInProps {
   habits: Habit[]
