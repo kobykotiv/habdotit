@@ -1,7 +1,12 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 
-const Tutorial = ({ isOpen, onClose }) => {
+interface TutorialProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const Tutorial = ({ isOpen, onClose }: TutorialProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
