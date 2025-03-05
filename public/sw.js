@@ -40,17 +40,29 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-self.addEventListener("push", (event) => {
-  const data = event.data ? event.data.json() : {};
+self.addEventListener('push', function(event) {
+  if (!event.data) return;
+
+  const data = event.data.json();
   
   event.waitUntil(
-    self.registration.showNotification(data.title || "New Notification", {
+    self.registration.showNotification(data.title, {
       body: data.body,
-      icon: data.icon,
-      badge: data.badge,
-      data: data.data,
+      icon: '/icon-192x192.png',
+      badge: '/badge-96x96.png',
+      data: data.data
     })
   );
+});
+
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close();
+
+  if (event.notification.data?.url) {
+    event.waitUntil(
+      clients.openWindow(event.notification.data.url)
+    );
+  }
 });
 
 self.addEventListener('sync', (event) => {

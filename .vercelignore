@@ -1,2 +1,10 @@
 bun.lockb
 node_modules
+dist
+build
+*.log
+.env
+.DS_Store
+.vscode
+.idea
+*.swp
